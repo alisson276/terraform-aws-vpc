@@ -188,7 +188,7 @@ data "aws_vpc_ipam_pool" "ipv4_example" {
 }
 
 # Preview next CIDR from pool
-data "aws_vpc_ipam_preview_next_cidr" "previewed_cidr" {
+resource "aws_vpc_ipam_preview_next_cidr" "previewed_cidr" {
   ipam_pool_id   = data.aws_vpc_ipam_pool.ipv4_example.id
   netmask_length = 24
 }
@@ -197,7 +197,7 @@ data "aws_region" "current" {}
 
 # Calculate subnet cidrs from previewed IPAM CIDR
 locals {
-  partition       = cidrsubnets(data.aws_vpc_ipam_preview_next_cidr.previewed_cidr.cidr, 2, 2)
+  partition       = cidrsubnets(aws_vpc_ipam_preview_next_cidr.previewed_cidr.cidr, 2, 2)
   private_subnets = cidrsubnets(local.partition[0], 2, 2)
   public_subnets  = cidrsubnets(local.partition[1], 2, 2)
   azs             = formatlist("${data.aws_region.current.name}%s", ["a", "b"])
@@ -208,7 +208,7 @@ module "vpc_cidr_from_ipam" {
   name              = "vpc-cidr-from-ipam"
   ipv4_ipam_pool_id = data.aws_vpc_ipam_pool.ipv4_example.id
   azs               = local.azs
-  cidr              = data.aws_vpc_ipam_preview_next_cidr.previewed_cidr.cidr
+  cidr              = aws_vpc_ipam_preview_next_cidr.previewed_cidr.cidr
   private_subnets   = local.private_subnets
   public_subnets    = local.public_subnets
 }
